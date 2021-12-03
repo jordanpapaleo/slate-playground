@@ -3,7 +3,10 @@
 */
 
 // @ts-ignore
-const Leaf = ({ attributes, children, leaf }) => {
+const Leaf = (props) => {
+  console.log('props', props)
+  let { attributes, children, leaf } = props
+
   if (leaf.bold) {
     children = <strong>{children}</strong>
   }
@@ -29,7 +32,7 @@ const Leaf = ({ attributes, children, leaf }) => {
   }
 
   return (
-    <span {...attributes} style={style}>
+    <span className="me-leaf" {...attributes} style={style}>
       {children}
     </span>
   )

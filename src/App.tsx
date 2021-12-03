@@ -1,87 +1,78 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react'
 import { createEditor } from 'slate'
-import { Slate, Editable, withReact } from 'slate-react'
+import { withHistory } from 'slate-history'
 import {
-  defaultState,
-  renderElement,
-  renderLeaf,
-  savedState,
+  Editable,
+  Slate,
+  // useFocused,
+  // useReadOnly,
+  // useSelected,
+  // useSlate,
+  // useSlateStatic,
+  withReact,
+} from 'slate-react'
+import {
   keyPressHandler,
-  INLINE_STYLES,
-  BLOCK_STYLES,
-  setFontStuff,
-  toggleType,
 } from './appUtils'
 
-const App = () => {
-  const editor = React.useMemo(() => withReact(createEditor()), [])
-  const [value, setValue] = React.useState(savedState || defaultState)
+import {
+  loadEditorState,
+  saveEditorState,
+} from './stateUtils'
 
-  // Define a rendering function based on the element passed to `props`. We use
-  // `useCallback` here to memoize the function for subsequent renders.
+import { LEAF_NODES, OPTION_LEAF_NODES, renderLeaf } from './leafNodes'
+import { ELEMENT_NODES, renderElement } from './elementNodes'
+
+import withCustomNormalize from './with-custom-normalize'
+
+const App = () => {
+  const editorWithHistory = withHistory(createEditor())
+  const editorWithReact = withReact(editorWithHistory)
+  // const editorWithCN = withCustomNormalize(editorWithReact)
+  const editor = React.useMemo(() => editorWithReact, [])
+  const [value, setValue] = React.useState(loadEditorState())
   const renderElementFn = React.useCallback(renderElement, [])
   const renderLeafFn = React.useCallback(renderLeaf, [])
 
-  React.useEffect(() => {
-    const content = JSON.stringify(value)
-    localStorage.setItem('content', content)
-  }, [value])
+  console.log('value', value)
+
+  React.useEffect(() => { saveEditorState(value) }, [value])
 
   return (
     <div style={{ margin: '1rem' }}>
       <nav style={{ display: 'flex', gap: 10 }}>
-        {INLINE_STYLES.map(({ label, fn }) => (
+        {LEAF_NODES.map(({ label, key, fn }) => (
           <button onMouseDown={(event) => {
             event.preventDefault()
-            fn(editor)
+            fn(editor, key)
           }}>
             {label}
           </button>
         ))}
 
-        <button onClick={(e) => {
-          toggleType(editor, 'heading-one')
-        }}>h1</button>
-        <button onClick={(e) => {
-          toggleType(editor, 'heading-two')
-        }}>h2</button>
-        <button onClick={(e) => {
-          toggleType(editor, 'heading-three')
-        }}>h3</button>
-        <button onClick={(e) => {
-          toggleType(editor, 'block-quote')
-        }}>BQ</button>
-        <button onClick={(e) => {
-          toggleType(editor, 'bulleted-list')
-        }}>UL</button>
-        <button onClick={(e) => {
-          toggleType(editor, 'numbered-list')
-        }}>OL</button>
-        <button onClick={(e) => {
-          toggleType(editor, 'list-item')
-        }}>LI</button>
+        {ELEMENT_NODES.map(({label, type, fn}) => (
+          <button key={type} onClick={(e) => {
+            fn(editor, type)
+          }}>{label}</button>
+        ))}
       </nav>
+
       <nav style={{display: 'flex', gap: 10}}>
-        <label>
-          Font Size<br />
-          <select onChange={(e) => {
-            setFontStuff(editor, 'fontSize', e.target.value)
-          }}>
-            <option value="16">16</option>
-            <option value="24">24</option>
-            <option value="36">36</option>
-          </select>
-        </label>
+        {OPTION_LEAF_NODES.map(({label, key, fn, options}) => (
+          <label key={key}>
+            {label}<br />
+            <select onChange={(e) => { fn(editor, key, e.target.value) }}>
+              {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </label>
+        ))}
 
         <label>
-          Font Family<br />
-          <select onChange={(e) => {
-            setFontStuff(editor, 'fontFamily', e.target.value)
-          }}>
-            <option value="Arial">Arial</option>
-            <option value="Tahome">Tahoma</option>
-            <option value="Verdana">Verdana</option>
-          </select>
+          Section Margins<br />
+          <input type="number" min="0" max="0" step="0.5" onChange={() => {
+            console.log('here')
+          }} />
         </label>
       </nav>
 
@@ -89,7 +80,7 @@ const App = () => {
         <Slate
           editor={editor}
           value={value}
-          onChange={newValue => { setValue(newValue) }}
+          onChange={(newValue) => { setValue(newValue) }}
         >
           <Editable
             renderElement={renderElementFn}
@@ -97,8 +88,11 @@ const App = () => {
             onKeyDown={keyPressHandler(editor)}
           />
         </Slate>
-
       </div>
+
+      <pre style={{padding: '1rem', background: '#eeeeee'}}>
+        {JSON.stringify(value, null, 2)}
+      </pre>
     </div>
   )
 }
