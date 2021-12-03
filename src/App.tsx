@@ -2,6 +2,7 @@
 import React from 'react'
 import { createEditor } from 'slate'
 import { withHistory } from 'slate-history'
+import './app.css'
 import {
   Editable,
   Slate,
@@ -21,28 +22,46 @@ import {
   saveEditorState,
 } from './stateUtils'
 
-import { LEAF_NODES, OPTION_LEAF_NODES, renderLeaf } from './leafNodes'
+import { TEXT_NODES, OPTION_TEXT_NODES, renderLeaf } from './textNodes'
 import { ELEMENT_NODES, renderElement } from './elementNodes'
 
-import withCustomNormalize from './with-custom-normalize'
+import withCustomNormalize from './withCustomNormalize'
+import { ComboEditor } from './common.types'
+
+const sectionPlugin = {
+  commands: {
+    // editor.insertSectionBreak({ marginLeft: 0, marginRight: 1 })
+    insertSectionBreak(editor: ComboEditor, {marginLeft, marginRight}) {
+      console.log('editor', editor)
+      editor.insertBlock({
+        type: 'section-break',
+        data: { marginLeft, marginRight }
+      })
+    }
+  },
+  queries: {
+    // editor.getActiveListItem()
+    getActiveListItem(editor: ComboEditor) {
+      // ...
+    }
+  }
+}
 
 const App = () => {
   const editorWithHistory = withHistory(createEditor())
   const editorWithReact = withReact(editorWithHistory)
-  // const editorWithCN = withCustomNormalize(editorWithReact)
-  const editor = React.useMemo(() => editorWithReact, [])
+  const editorWithCN = withCustomNormalize(editorWithReact)
+  const editor = React.useMemo(() => editorWithCN, [])
   const [value, setValue] = React.useState(loadEditorState())
   const renderElementFn = React.useCallback(renderElement, [])
   const renderLeafFn = React.useCallback(renderLeaf, [])
-
-  console.log('value', value)
 
   React.useEffect(() => { saveEditorState(value) }, [value])
 
   return (
     <div style={{ margin: '1rem' }}>
       <nav style={{ display: 'flex', gap: 10 }}>
-        {LEAF_NODES.map(({ label, key, fn }) => (
+        {TEXT_NODES.map(({ label, key, fn }) => (
           <button onMouseDown={(event) => {
             event.preventDefault()
             fn(editor, key)
@@ -59,7 +78,7 @@ const App = () => {
       </nav>
 
       <nav style={{display: 'flex', gap: 10}}>
-        {OPTION_LEAF_NODES.map(({label, key, fn, options}) => (
+        {OPTION_TEXT_NODES.map(({label, key, fn, options}) => (
           <label key={key}>
             {label}<br />
             <select onChange={(e) => { fn(editor, key, e.target.value) }}>
@@ -76,21 +95,19 @@ const App = () => {
         </label>
       </nav>
 
-      <div style={{ border: '1px solid #cccccc', margin: '1rem 0'}}>
-        <Slate
-          editor={editor}
-          value={value}
-          onChange={(newValue) => { setValue(newValue) }}
-        >
-          <Editable
-            renderElement={renderElementFn}
-            renderLeaf={renderLeafFn}
-            onKeyDown={keyPressHandler(editor)}
-          />
-        </Slate>
-      </div>
+      <Slate
+        editor={editor}
+        value={value}
+        onChange={(newValue) => { setValue(newValue) }}
+      >
+        <Editable
+          renderElement={renderElementFn}
+          renderLeaf={renderLeafFn}
+          onKeyDown={keyPressHandler(editor)}
+        />
+      </Slate>
 
-      <pre style={{padding: '1rem', background: '#eeeeee'}}>
+      <pre>
         {JSON.stringify(value, null, 2)}
       </pre>
     </div>

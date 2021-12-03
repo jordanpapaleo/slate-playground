@@ -1,0 +1,18 @@
+.page {
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  tab-size: 1in;
+  border: 1px solid #d3d3d3;
+  box-shadow: 0 0 5px rgb(0 0 0 / 10%);
+  background-color: white;
+
+}
+
+html {
+  background-color: rgb(243, 244, 246);
+}
+
+pre {
+  padding: 1rem;
+  background: #eeeeee;
+}

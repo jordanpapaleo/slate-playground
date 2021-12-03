@@ -1,10 +1,5 @@
-/*
-  Apply text styles to leafs
-*/
-
 // @ts-ignore
 const Leaf = (props) => {
-  console.log('props', props)
   let { attributes, children, leaf } = props
 
   if (leaf.bold) {

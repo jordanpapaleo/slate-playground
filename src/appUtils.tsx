@@ -1,4 +1,6 @@
-export const keyPressHandler = (editor: any) => (event) => {
+import { ComboEditor } from "./common.types"
+
+export const keyPressHandler = (editor: ComboEditor) => (event) => {
   switch (event.key) {
     case '`': {
       event.preventDefault()

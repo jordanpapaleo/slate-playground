@@ -1,4 +1,4 @@
-import { BaseEditor, Editor, Transforms, Element as SlateElement } from 'slate'
+import { Editor, Transforms, Element as SlateElement } from 'slate'
 import { ComboEditor } from './common.types'
 import DefaultElement from './DefaultElement'
 import CodeElement from './CodeElement'
@@ -18,22 +18,24 @@ type Options = {
   voids?: boolean;
 }
 
-function testType(editor: BaseEditor, type: string) {
-  console.log('editor', editor)
+function testType(editor: ComboEditor, type: string) {
   const options: Options = {
     match: (elementNode: ElementNode) => {
-      console.log('elementNode', elementNode)
       return elementNode.type === type
     }
   }
+
+  // @ts-ignore match is a ElementNode
   const [match] = Editor.nodes(editor, options)
   return !!match
 }
 
 export function toggleType(editor: ComboEditor, type: string) {
   const isActive = testType(editor, type)
-  const props = { type: isActive ? null : type }
-  const options = { match: n => Editor.isBlock(editor, n) }
+  const props = { type: isActive ? 'paragraph' : type }
+  // @ts-ignore
+  const options = { match: (n) => Editor.isBlock(editor, n) }
+  // @ts-ignore
   Transforms.setNodes(editor, props, options)
 }
 
@@ -55,34 +57,52 @@ export const ELEMENT_NODES: Array<{
   ]
 
 export const renderElement = (props: any) => {
+  console.log('props.element', props.element)
+
   switch (props.element.type) {
     case 'code':
       return <CodeElement { ...props } />
     case 'block-quote':
-      return <blockquote { ...props.attributes } > { props.children }</blockquote>
+      return <blockquote { ...props.attributes }>{ props.children }</blockquote>
     case 'ul':
-      return <ul { ...props.attributes } > { props.children }</ul>
+      return <ul { ...props.attributes }>{ props.children }</ul>
     case 'h1':
-      return <h1 { ...props.attributes } > { props.children }</h1>
+      return <h1 { ...props.attributes }>{ props.children }</h1>
     case 'h2':
-      return <h2 { ...props.attributes } > { props.children }</h2>
+      return <h2 { ...props.attributes }>{ props.children }</h2>
     case 'h3':
-      return <h3 { ...props.attributes } > { props.children }</h3>
+      return <h3 { ...props.attributes }>{ props.children }</h3>
     case 'li':
-      return <li { ...props.attributes } > { props.children }</li>
+      return <li { ...props.attributes }>{ props.children }</li>
     case 'ol':
-      return <ol { ...props.attributes } > { props.children }</ol>
+      return <ol { ...props.attributes }>{ props.children }</ol>
     case 'section':
-      return <section className="section" {...props.attributes }> { props.children }</section>
+      return <Section className="section" {...props} />
     case 'section-break':
-      console.log(props)
-      return <section className="section-break" {...props.attributes }> { props.children }</section>
+      return <Section className="section-break" {...props} />
     case 'page':
-      return <div className="page" {...props.attributes }> { props.children }</div>
+      return (
+        <Page {...props} />
+      )
     default:
       return <DefaultElement { ...props } />
   }
 }
+
+const Section = (props) => (
+  <section
+    className={props.className}
+    style={props.element.data}
+  >
+    {props.children}
+  </section>
+)
+
+const Page = (props) => (
+  <main style={props.element.data} className='page'>
+    {props.children}
+  </main>
+)
 
 //
 //
