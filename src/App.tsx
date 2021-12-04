@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react'
-import { createEditor } from 'slate'
+import { createEditor, Text, Range, Path  } from 'slate'
 import { withHistory } from 'slate-history'
 import './app.css'
 import {
@@ -25,7 +25,7 @@ import {
 import { TEXT_NODES, OPTION_TEXT_NODES, renderLeaf } from './textNodes'
 import { ELEMENT_NODES, renderElement } from './elementNodes'
 
-import withCustomNormalize from './withCustomNormalize'
+// import withCustomNormalize from './withCustomNormalize'
 import { ComboEditor } from './common.types'
 
 const sectionPlugin = {
@@ -50,57 +50,88 @@ const sectionPlugin = {
 const App = () => {
   const editorWithHistory = withHistory(createEditor())
   const editorWithReact = withReact(editorWithHistory)
-  const editorWithCN = withCustomNormalize(editorWithReact)
-  const editor = React.useMemo(() => editorWithCN, [])
+  // const editorWithCN = withCustomNormalize(editorWithReact)
+  const editor = React.useMemo(() => editorWithReact, [])
   const [value, setValue] = React.useState(loadEditorState())
   const renderElementFn = React.useCallback(renderElement, [])
   const renderLeafFn = React.useCallback(renderLeaf, [])
+  const [search, setSearch] = React.useState<string | undefined>()
 
   React.useEffect(() => { saveEditorState(value) }, [value])
 
+  const decorate = React.useCallback(([node, path]) => {
+    const ranges = []
+
+    if (search && Text.isText(node)) {
+      const { text } = node
+      const parts = text.split(search)
+      let offset = 0
+
+      parts.forEach((part, i) => {
+        if (i !== 0) {
+          ranges.push({
+            anchor: { path, offset: offset - search.length },
+            focus: { path, offset },
+            highlight: true,
+          })
+        }
+
+        offset = offset + part.length + search.length
+      })
+    }
+
+    return ranges
+  }, [search])
+
   return (
     <div style={{ margin: '1rem' }}>
-      <nav style={{ display: 'flex', gap: 10 }}>
-        {TEXT_NODES.map(({ label, key, fn }) => (
-          <button onMouseDown={(event) => {
-            event.preventDefault()
-            fn(editor, key)
-          }}>
-            {label}
-          </button>
-        ))}
-
-        {ELEMENT_NODES.map(({label, type, fn}) => (
-          <button key={type} onClick={(e) => {
-            fn(editor, type)
-          }}>{label}</button>
-        ))}
-      </nav>
-
-      <nav style={{display: 'flex', gap: 10}}>
-        {OPTION_TEXT_NODES.map(({label, key, fn, options}) => (
-          <label key={key}>
-            {label}<br />
-            <select onChange={(e) => { fn(editor, key, e.target.value) }}>
-              {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          </label>
-        ))}
-
-        <label>
-          Section Margins<br />
-          <input type="number" min="0" max="0" step="0.5" onChange={() => {
-            console.log('here')
-          }} />
-        </label>
-      </nav>
-
       <Slate
         editor={editor}
         value={value}
         onChange={(newValue) => { setValue(newValue) }}
       >
+        <nav style={{ display: 'flex', gap: 10 }}>
+          {TEXT_NODES.map(({ label, key, fn }) => (
+            <button onMouseDown={(event) => {
+              event.preventDefault()
+              fn(editor, key)
+            }}>
+              {label}
+            </button>
+          ))}
+
+          {ELEMENT_NODES.map(({label, type, fn}) => (
+            <button key={type} onClick={(e) => {
+              fn(editor, type)
+            }}>{label}</button>
+          ))}
+        </nav>
+
+        <nav>
+          <button>Data Element</button>
+        </nav>
+
+        <nav style={{display: 'flex', gap: 10}}>
+          {OPTION_TEXT_NODES.map(({label, key, fn, options}) => (
+            <label key={key}>
+              {label}<br />
+              <select onChange={(e) => { fn(editor, key, e.target.value) }}>
+                {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+            </label>
+          ))}
+
+          <label>
+            Text Search<br />
+            <input
+              type="search"
+              onChange={e => setSearch(e.target.value)}
+            />
+          </label>
+        </nav>
+
         <Editable
+          decorate={decorate}
           renderElement={renderElementFn}
           renderLeaf={renderLeafFn}
           onKeyDown={keyPressHandler(editor)}

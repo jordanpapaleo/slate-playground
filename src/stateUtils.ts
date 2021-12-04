@@ -1,66 +1,61 @@
+// @ts-nocheck
+import {
+  getDataElement,
+  getElement,
+  getList,
+  getParagraph,
+  getTable,
+  // getText,
+  nestedTable,
+} from './mockData'
+
 export const saveEditorState = (value: any) => {
   const content = JSON.stringify(value)
   localStorage.setItem('content', content)
 }
 
-const getElement = (type: string, data = {}): {
-  type: string,
-  data: {},
-  children: []
-} => ({
-  type,
-  data,
-  children: [],
-})
-
-const getText = (text: string): {text: string} => ({ text })
-
 export const loadEditorState = () => {
   // @ts-ignore
-  const savedState = JSON.parse(localStorage.getItem('content'))
-
-
-  const page1 = getElement('page', {
+  // const savedState = JSON.parse(localStorage.getItem('content'))
+  const page1 = getElement('page', {style: {
     height: '11in',
     padding: '1in',
     width: '8.5in',
-  })
+  }})
 
-  const section1 = getElement('section', { marginLeft: '1in', marginRight: '1in' })
+  const section1 = getElement('section')
+  const paragraph1 = getParagraph('some paragraph text')
+  const de1 = getDataElement('FASTFILEID', { tooltip: 'This is a data element' })
+  const paragraph2 = getParagraph('some other paragraph text')
+  const table = getTable()
+  const list1 = getList('ol')
+  const list2 = getList('ul')
+  const list3 = getList('ul')
+  const list4 = getList('ul')
+  list1.children.push(list2)
+  list2.children.push(list3)
+  list3.children.push(list4)
+  list4.children.push(getList('ol'))
+
+  // const page2 = getElement('page', {style: {
+  //   height: '17in',
+  //   width: '11in',
+  //   padding: '0.5in',
+  // }})
+
+  section1.children = [
+    paragraph1,
+    de1,
+    list1,
+    paragraph2,
+    table,
+    nestedTable(),
+  ]
+
   page1.children = [section1]
-
-  const paragraph1 = getElement('paragraph')
-  const paragraph2 = getElement('paragraph')
-  section1.children = [ paragraph1, paragraph2 ]
-
-  const text1 = getText('Text 1')
-  const text2 = getText('Text 2')
-
-  paragraph1.children = [text1]
-  paragraph2.children = [text2]
-
-  const page2 = getElement('page', {
-    height: '17in',
-    width: '11in',
-    padding: '0.5in',
-  })
-
-  const section2 = getElement('section')
-  page2.children = [section2]
-
-  const list = getElement('ol')
-  section2.children = [list]
-
-  const li1 = getElement('li')
-  const li2 = getElement('li')
-
-  list.children = [ li1, li2 ]
-  li1.children = [getText('list item1')]
-  li2.children = [getText('list item2')]
 
   const DEFAULT_STATE = [
     page1,
-    page2,
   ]
 
   console.log(JSON.stringify(DEFAULT_STATE, null, 2))

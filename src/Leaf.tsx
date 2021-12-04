@@ -20,14 +20,19 @@ const Leaf = (props) => {
 
   const style = {
     textDecoration: leaf.strike && 'line-through',
-    backgroundColor: leaf.highlight && 'yellow',
+    backgroundColor: leaf.highlight && '#ffeeba',
     color: leaf.color && 'red',
     fontSize: leaf.fontSize && leaf.fontSize +'px',
     fontFamily: leaf.fontFamily && leaf.fontFamily,
   }
 
   return (
-    <span className="me-leaf" {...attributes} style={style}>
+    <span
+      className="me-leaf"
+      {...attributes}
+      style={style}
+      {...(leaf.highlight && { 'data-cy': 'search-highlighted' })}
+    >
       {children}
     </span>
   )

@@ -1,3 +1,4 @@
+import React from 'react'
 import { Editor, Transforms, Element as SlateElement } from 'slate'
 import { ComboEditor } from './common.types'
 import DefaultElement from './DefaultElement'
@@ -76,30 +77,68 @@ export const renderElement = (props: any) => {
       return <li { ...props.attributes }>{ props.children }</li>
     case 'ol':
       return <ol { ...props.attributes }>{ props.children }</ol>
+    case 'table':
+      return <table { ...props.attributes }>{ props.children }</table>
+    case 'table':
+      return <table { ...props.attributes }>{ props.children }</table>
+    case 'tr':
+      return <tr { ...props.attributes }>{ props.children }</tr>
+    case 'td':
+      return <td { ...props.attributes }>{ props.children }</td>
     case 'section':
       return <Section className="section" {...props} />
     case 'section-break':
       return <Section className="section-break" {...props} />
     case 'page':
-      return (
-        <Page {...props} />
-      )
+      return <Page {...props} />
+    case 'data-element':
+      return <DataElement {...props} />
     default:
       return <DefaultElement { ...props } />
   }
 }
 
+const DataElement = (props) => {
+  /*
+    needs some tweaking when tying to add data after and to delete
+   */
+  const [show, setShow] = React.useState(false)
+
+  return (
+    <span
+      style={{ userSelect: "none", position: 'relative', backgroundColor: '#eee', padding: '0 3px'}}
+      contentEditable={false}
+      onMouseEnter={() => { setShow(true) }}
+      onMouseOut={() => { setShow(false) }}
+    >
+      {props.children}
+
+      {show && (<span
+        style={{
+          position: 'absolute',
+          left: 0,
+          bottom: -30,
+          padding: 5,
+          width: 150,
+          color: 'white',
+          background: '#111'
+        }}
+      >{props.element.data.tooltip}</span>)}
+    </span>
+  )
+}
+
 const Section = (props) => (
   <section
     className={props.className}
-    style={props.element.data}
+    style={props.element.data.style}
   >
     {props.children}
   </section>
 )
 
 const Page = (props) => (
-  <main style={props.element.data} className='page'>
+  <main style={props.element.data.style} className='page'>
     {props.children}
   </main>
 )
