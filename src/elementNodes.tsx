@@ -102,9 +102,28 @@ export const renderElement = (props: any) => {
       return <Page {...props} />
     case 'data-element':
       return <DataElement {...props} />
+    case 'columns':
+      return <Columns {...props } />
     default:
       return <DefaultElement { ...props } />
   }
+}
+
+
+
+const Columns = (props) => {
+  // https://www.w3schools.com/css/css3_multiple_columns.asp
+  const styles = {
+    columnCount: 3,
+    columnGap: 20,
+    columnRule: '1px solid hotpink',
+  }
+
+  return (
+    <div className="columns" style={styles}>
+      {props.children}
+    </div>
+  )
 }
 
 const DataElement = (props) => {
