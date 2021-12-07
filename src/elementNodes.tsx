@@ -31,9 +31,20 @@ function testType(editor: ComboEditor, type: string) {
   return !!match
 }
 
-export function toggleType(editor: ComboEditor, type: string) {
+export function toggleType({
+  data = {},
+  editor,
+  type,
+}: {
+  data: {},
+  editor: ComboEditor,
+  type: string,
+}) {
   const isActive = testType(editor, type)
-  const props = { type: isActive ? 'paragraph' : type }
+  const props = isActive
+    ? { type: 'paragraph' }
+    : { data, type }
+
   // @ts-ignore
   const options = { match: (n) => Editor.isBlock(editor, n) }
   // @ts-ignore
@@ -58,7 +69,7 @@ export const ELEMENT_NODES: Array<{
   ]
 
 export const renderElement = (props: any) => {
-  console.log('props.element', props.element)
+  // console.log('props.element', props.element)
 
   switch (props.element.type) {
     case 'code':
@@ -77,8 +88,6 @@ export const renderElement = (props: any) => {
       return <li { ...props.attributes }>{ props.children }</li>
     case 'ol':
       return <ol { ...props.attributes }>{ props.children }</ol>
-    case 'table':
-      return <table { ...props.attributes }>{ props.children }</table>
     case 'table':
       return <table { ...props.attributes }>{ props.children }</table>
     case 'tr':

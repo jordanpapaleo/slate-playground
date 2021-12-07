@@ -5,7 +5,6 @@
   border: 1px solid #d3d3d3;
   box-shadow: 0 0 5px rgb(0 0 0 / 10%);
   background-color: white;
-
 }
 
 html {
@@ -15,4 +14,8 @@ html {
 pre {
   padding: 1rem;
   background: #eeeeee;
+}
+
+p {
+  margin-top: 0px;
 }

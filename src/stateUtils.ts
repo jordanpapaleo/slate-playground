@@ -9,6 +9,11 @@ import {
   nestedTable,
 } from './mockData'
 
+type CustomElement = { type: 'paragraph'; children: CustomText[] }
+type CustomText = { text: string }
+
+const initialValue: CustomElement[] = []
+
 export const saveEditorState = (value: any) => {
   const content = JSON.stringify(value)
   localStorage.setItem('content', content)
@@ -18,9 +23,9 @@ export const loadEditorState = () => {
   // @ts-ignore
   // const savedState = JSON.parse(localStorage.getItem('content'))
   const page1 = getElement('page', {style: {
-    height: '11in',
-    padding: '1in',
-    width: '8.5in',
+    height: '4in',
+    padding: '0.25in',
+    width: '4in',
   }})
 
   const section1 = getElement('section')
@@ -37,31 +42,40 @@ export const loadEditorState = () => {
   list3.children.push(list4)
   list4.children.push(getList('ol'))
 
-  // const page2 = getElement('page', {style: {
-  //   height: '17in',
-  //   width: '11in',
-  //   padding: '0.5in',
-  // }})
+  const page2 = getElement('page', {style: {
+    height: '4in',
+    width: '4in',
+    padding: '0.25in',
+  }})
 
   section1.children = [
     paragraph1,
-    de1,
-    list1,
+    // de1,
+    // list1,
     paragraph2,
-    table,
-    nestedTable(),
+    // table,
+    // nestedTable(),
   ]
 
-  page1.children = [section1]
+  page1.children = [
+    section1
+    // paragraph1
+  ]
+
+  page2.children = [
+    section1
+    // paragraph1
+  ]
 
   const DEFAULT_STATE = [
     page1,
+    page2
   ]
 
-  console.log(JSON.stringify(DEFAULT_STATE, null, 2))
+  // console.log(JSON.stringify(DEFAULT_STATE, null, 2))
 
+  return JSON.parse(JSON.stringify(DEFAULT_STATE))
   // return savedState || DEFAULT_STATE
-  return DEFAULT_STATE
 }
 
 

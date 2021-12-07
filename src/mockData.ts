@@ -1,6 +1,7 @@
 export const getList = (type, data = {}) => ({
   type,
   data,
+  object: 'block',
   children: [
     {
       type: 'li',
@@ -17,6 +18,7 @@ export const getList = (type, data = {}) => ({
 
 export const getParagraph = (text, data = {}) => ({
   type: 'paragraph',
+  object: 'block',
   data,
   children: [{ text }],
 })
@@ -41,6 +43,7 @@ export const getText = (text: string): { text: string } => ({ text })
 
 export const getTr = () => ({
   type: 'tr',
+  object: 'block',
   children: [
     {
       type: 'td',
@@ -63,6 +66,7 @@ export const getTr = () => ({
 
 export const getTable = (data = {}) => ({
   type: 'table',
+  object: 'block',
   data,
   children: [
     getTr(),
