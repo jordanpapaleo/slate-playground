@@ -1,3 +1,4 @@
+// @refresh reset
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from 'react'
 import * as slate from 'slate'
@@ -24,14 +25,15 @@ window.slate = slate
 window.reactSlate = reactSlate
 const { createEditor, Text, Transforms, Descendant, Editor, Range, Path } = slate
 const {
+  // useFocused,
+  // useReadOnly,
+  // useSelected,
+  // useSlate,
+  // useSlateStatic,
   Editable,
-    Slate,
-    // useFocused,
-    // useReadOnly,
-    // useSelected,
-    // useSlate,
-    // useSlateStatic,
-    withReact,
+  ReactEditor,
+  Slate,
+  withReact,
 } = reactSlate
 
 const sectionPlugin = {
@@ -58,11 +60,19 @@ const getEditor = () => [
   withReact,
   withCustomNormalize,
   // withCustomInsertBreak,
-].reduce((editor, next) => next(editor), createEditor())
+].reduce((editor, next) => {
+  return next(editor)
+}, createEditor())
 
-
+const getPage = (editor) => {
+  const path = get(editor.selection, 'anchor.path', [0])
+  const [pagePositon] = path
+  const page = editor.children[pagePositon]
+  return { page, path, pagePositon }
+}
 
 const App = () => {
+  // https://github.com/ianstormtaylor/slate/issues/4081
   const editor = React.useMemo(getEditor, [])
   const renderElementFn = React.useCallback(renderElement, [])
   const renderLeafFn = React.useCallback(renderLeaf, [])
@@ -73,7 +83,13 @@ const App = () => {
     window.editor = editor
     window.tfs = Transforms
   }, [editor])
+
   React.useEffect(() => { saveEditorState(value) }, [value])
+
+  React.useEffect(() => {
+    ReactEditor.focus(editor)
+  }, [])
+
 
   // text search ranges
   const getRanges = ([node, path]) => {
@@ -104,22 +120,13 @@ const App = () => {
 
   const genericHandler = (type, fn) => (e) => {
     e.preventDefault()
-    const data = {
-      style: {color: 'blue'}
-    }
+    const data = { style: {color: 'blue'} }
     fn({ data, editor, type })
-  }
-
-  const getPage = () => {
-    const path = get(editor.selection, 'anchor.path', [0])
-    const [pagePositon] = path
-    const page =  editor.children[pagePositon]
-    return { page, path, pagePositon }
   }
 
   const handlePaddingChange = (updateKey) => (e) => {
     const val = e.target.value + 'in'
-    const { page, path, pagePositon } = getPage()
+    const { page, pagePositon } = getPage(editor)
     const style = { ...page.data.style, [updateKey]: val }
 
     const props = { type: 'page', data: { ...page.data, style } }
@@ -129,7 +136,7 @@ const App = () => {
 
   const handlePaperSizeChange = (e) => {
     const [width, height] = e.target.value.split('x')
-    const { page, path, pagePositon } = getPage()
+    const { page, pagePositon } = getPage(editor)
     const style = {
       ...page.data.style,
       height: height + 'in',
@@ -148,81 +155,21 @@ const App = () => {
         onChange={(newValue) => { setValue(newValue) }}
         value={value}
       >
-        <nav>
-          {TEXT_NODES.map(({ label, key, fn }) => (
-            <button key={key} onMouseDown={genericHandler(key, fn)}>{label}</button>
-          ))}
-
-          {ELEMENT_NODES.map(({label, type, fn}) => (
-            <button key={type} onMouseDown={genericHandler(type, fn)}>{label}</button>
-          ))}
-
-          {/* <button>Data Element</button> */}
-
-          {OPTION_TEXT_NODES.map(({ label, key, fn, options }) => (
-            <label key={key} style={{display: 'inline-flex'}}>
-              {label} <select onChange={(e) => { fn(editor, key, e.target.value) }}>
-                {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-            </label>
-          ))}
-
-          <label style={{ display: 'inline-flex' }}>
-            Text Search<br />
-            <input
-              type="search"
-              onChange={e => setTextSearch(e.target.value)}
-            />
-          </label>
-
-          <label style={{ display: 'inline-flex' }}>
-            Margin Left<br />
-            <input
-              type="number"
-              step="0.25"
-              min="0"
-              max="3"
-              onChange={handlePaddingChange('paddingLeft')}
-            />
-          </label>
-
-          <label style={{ display: 'inline-flex' }}>
-            Margin Right<br />
-            <input
-              type="number"
-              step="0.25"
-              min="0"
-              max="3"
-              onChange={handlePaddingChange('paddingRight')}
-            />
-          </label>
-
-          <label style={{ display: 'inline-flex' }}>
-            Margin Top<br />
-            <input
-              type="number"
-              step="0.25"
-              min="0"
-              max="3"
-              onChange={handlePaddingChange('paddingTop')}
-            />
-          </label>
-
-          <label style={{ display: 'inline-flex' }}>
-            Paper Size
-            <select onChange={handlePaperSizeChange}>
-              <option value="4x4">4x4</option>
-              <option value="5x5">5x5</option>
-              <option value="6x6">6x6</option>
-            </select>
-          </label>
-        </nav>
+        <Toolbar
+          editor={editor}
+          genericHandler={genericHandler}
+          handlePaddingChange={handlePaddingChange}
+          handlePaperSizeChange={handlePaperSizeChange}
+          setTextSearch={setTextSearch}
+        />
 
         <Editable
           decorate={decorate}
+          onBlur={() => { console.log('Blurred') }}
+          onKeyDown={keyPressHandler(editor)}
+          onPaste={() => { console.log('Pasted') }}
           renderElement={renderElementFn}
           renderLeaf={renderLeafFn}
-          onKeyDown={keyPressHandler(editor)}
         />
       </Slate>
 
@@ -234,6 +181,74 @@ const App = () => {
 }
 
 export default App;
+
+const Toolbar = ({
+  editor,
+  genericHandler,
+  handlePaddingChange,
+  handlePaperSizeChange,
+  setTextSearch,
+}) => {
+  const inputStyles = { display: 'inline-flex' }
+  const INPUTS = [
+    ['Margin Left', 'paddingLeft'],
+    ['Margin Right', 'paddingRight'],
+    ['Margin Top', 'paddingTop'],
+    ['Margin Bottom', 'paddingBottom'],
+  ]
+
+  return (
+    <nav>
+      {TEXT_NODES.map(({ label, key, fn }) => (
+        <button key={key} onMouseDown={genericHandler(key, fn)}>{label}</button>
+      ))}
+
+      {ELEMENT_NODES.map(({ label, type, fn }) => (
+        <button key={type} onMouseDown={genericHandler(type, fn)}>{label}</button>
+      ))}
+
+      {/* <button>Data Element</button> */}
+
+      {OPTION_TEXT_NODES.map(({ label, key, fn, options }) => (
+        <label key={key} style={{ display: 'inline-flex' }}>
+          {label} <select onChange={(e) => { fn(editor, key, e.target.value) }}>
+            {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+        </label>
+      ))}
+
+      <label style={inputStyles}>
+        Text Search<br />
+        <input
+          type="search"
+          onChange={e => setTextSearch(e.target.value)}
+        />
+      </label>
+
+      {INPUTS.map(([label, value]) => (
+        <label style={inputStyles} key={value}>
+          {label}<br />
+          <input
+            max="3"
+            min="0"
+            onChange={handlePaddingChange(value)}
+            step="0.25"
+            type="number"
+          />
+        </label>
+      ))}
+
+      <label style={inputStyles}>
+        Paper Size
+        <select onChange={handlePaperSizeChange}>
+          <option value="4x4">4x4</option>
+          <option value="5x5">5x5</option>
+          <option value="6x6">6x6</option>
+        </select>
+      </label>
+    </nav>
+  )
+}
 
 /*
 editor.apply({
