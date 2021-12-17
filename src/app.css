@@ -8,8 +8,8 @@
   background-color: white;
 }
 
-section {
-  border: 2px solid #FF6600;
+.section {
+  border: 2px solid #d3d3d3;
   margin-bottom: 1rem;
 }
 
@@ -18,8 +18,11 @@ html {
 }
 
 pre {
+  color: white;
   padding: 1rem;
-  background: #eeeeee;
+  background: #333333;
+  overflow-y: scroll;
+
 }
 
 p {

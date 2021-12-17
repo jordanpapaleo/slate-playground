@@ -6,9 +6,7 @@ import { withHistory } from 'slate-history'
 import './app.css'
 import get from 'lodash/get'
 import * as reactSlate from 'slate-react'
-import {
-  keyPressHandler,
-} from './appUtils'
+import { keyPressHandler } from './appUtils'
 import { Plate } from '@udecode/plate'
 
 import {
@@ -73,7 +71,7 @@ const getPage = (editor) => {
 const App = () => {
   // https://github.com/ianstormtaylor/slate/issues/4081
   const [editor] = React.useState(() => getEditor())
-  // const renderElementFn = React.useCallback(renderElement, [])
+  const renderElementFn = React.useCallback(renderElement, [])
   const renderLeafFn = React.useCallback(renderLeaf, [])
   const [value, setValue] = React.useState<typeof Descendant[]>(loadEditorState())
   const [textSearch, setTextSearch] = React.useState<string | undefined>()
@@ -91,7 +89,9 @@ const App = () => {
 
   React.useEffect(() => {
     // runs the normalizeNode method on load
-    Editor.normalize(editor, { force: true })
+    setTimeout(() => {
+      Editor.normalize(editor, { force: true })
+    }, 500)
     ReactEditor.focus(editor)
   }, [])
 
@@ -153,7 +153,7 @@ const App = () => {
   }
 
   return (
-    <div style={{ margin: '1rem' }}>
+    <div style={{ margin: '1rem', display: 'flex' }}>
       <Slate
         editor={editor}
         onChange={(newValue) => { setValue(newValue) }}
@@ -169,12 +169,11 @@ const App = () => {
         /> */}
 
         <Editable
-          // renderElement={renderElementFn}
           decorate={decorate}
           onBlur={() => { console.log('Blurred') }}
           onKeyDown={keyPressHandler(editor)}
           onPaste={() => { console.log('Pasted') }}
-          renderElement={renderElement}
+          renderElement={renderElementFn}
           renderLeaf={renderLeafFn}
         />
       </Slate>

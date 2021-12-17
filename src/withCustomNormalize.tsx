@@ -1,9 +1,6 @@
-import { Transforms, Element, Editor, Text } from 'slate'
+import { Transforms, Element, Text } from 'slate'
 import { ReactEditor } from 'slate-react'
-import { RenderElementProps } from 'slate-react'
 import cloneDeep from 'lodash/cloneDeep'
-
-
 
 /*
   https://docs.slatejs.org/concepts/11-normalizing
@@ -17,43 +14,44 @@ import cloneDeep from 'lodash/cloneDeep'
   THIS ONLY HAPPENS ON CHANGE NOT ON LOAD
   This can be used to determine overflow to
   the next page on change.
-
-  HOW DO WE DO THIS ON LOAD?
 */
 function withCustomNormalize(editor: ReactEditor) {
   console.log('withCustomNormalize')
-  // can include custom normalizations... TODO: LEARN MORE
-  const { normalizeNode: defaultNormalize } = editor
+  const { normalizeNode } = editor
 
   editor.normalizeNode = (entry) => {
     const [node, path] = entry
 
-    if (Text.isText(node)) {
-      return defaultNormalize(entry)
-    } else if (Element.isElement(node) && node.type === 'section-page') {
-      console.log('node', node)
+    if (Text.isText(node)) return normalizeNode(entry)
 
+
+    if (Element.isElement(node) && node.type === 'section') {
       let SectionNode
-      SectionNode = ReactEditor.toDOMNode(editor, node)
-      console.log('SectionNode', SectionNode)
-      // try {
-      // } catch (e) {
-      //   console.log('catch', e)
-      //   return
-      //   // defaultNormalize(entry)
-      // }
+
+      try {
+        SectionNode = ReactEditor.toDOMNode(editor, node)
+      } catch (e) {
+        console.log('IGNORE ME', e)
+        return normalizeNode(entry)
+      }
+
+      // console.log('SectionNode', SectionNode)
 
       let currentPageHeight = 0
       const pageHeight = getPageHeight(SectionNode)
+      console.log('pageHeight', pageHeight)
       const children = Array.from(SectionNode.children)
+      console.log('children', children)
 
       children.forEach((child) => {
         const childHeight = getChildHeight(child)
+        console.log('childHeight', childHeight)
         currentPageHeight = currentPageHeight + childHeight
+        console.log('currentPageHeight', currentPageHeight)
 
         if (currentPageHeight > pageHeight) {
           const emptyPage = {
-            type: 'page',
+            type: 'section',
             data: cloneDeep(node.data), // pass props to page for w, h, margins
             children: []
           }
@@ -67,10 +65,10 @@ function withCustomNormalize(editor: ReactEditor) {
 
           // Split nodes at the specified location. If no location is specified, split the selection.
           Transforms.splitNodes(editor)
-          const elementData = JSON.parse(SectionNode.dataset.element)
-          console.log(elementData)
-          emptyPage.data = elementData
-
+          // console.log('SectionNode.dataset.element', SectionNode.dataset.element)
+          // const elementData = JSON.parse(SectionNode.dataset.element)
+          // console.log('elementData', elementData)
+          // emptyPage.data = elementData
           // Wrap nodes at the specified location in the element container.
           // If no location is specified, wrap the selection.
           Transforms.wrapNodes(editor, emptyPage)
@@ -78,7 +76,7 @@ function withCustomNormalize(editor: ReactEditor) {
       })
     }
     // Fall back to the original `normalizeNode` to enforce other constraints.
-    return defaultNormalize(entry)
+    return normalizeNode(entry)
   }
 
   return editor

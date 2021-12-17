@@ -74,9 +74,8 @@ export const renderElement = (props: any) => {
   switch (element.type) {
     case 'code':
       return <CodeElement { ...props } />
-    case 'section-page':
-      console.log('section-page')
-      return <Section className="section" {...props} />
+    case 'section':
+      return <Section {...props} />
     case 'page':
       return <Page {...props} />
     case 'data-element':
@@ -101,7 +100,7 @@ const Conditional = (props) => {
   // }
 
   return (
-    <div className="conditional">
+    <div className="conditional" {...props.attributes}>
       {/* <div className="conditions" style={{display: 'flex', flexDirection: 'column'}}>
         {conditions.map(({ label, i }) => (
           <button key={label} onClick={handleClick(i)}>
@@ -125,7 +124,7 @@ const Columns = (props) => {
   }
 
   return (
-    <div className="columns" style={styles}>
+    <div className="columns" style={styles} {...props.attributes}>
       {props.children}
     </div>
   )
@@ -148,6 +147,7 @@ const DataElement = (props) => {
       suppressContentEditableWarning
       onMouseEnter={() => { setShow(true) }}
       onMouseOut={() => { setShow(false) }}
+      {...props.attributes}
     >
       {props.children}
 
@@ -169,8 +169,9 @@ const DataElement = (props) => {
 /* Section has Pages */
 const Section = (props) => (
   <div
-    className={"section-page " + props.className}
+    className="section"
     style={props.element.data.style}
+    {...props.attributes}
   >
     {props.children}
   </div>
