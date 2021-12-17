@@ -1,74 +1,88 @@
 import { Transforms, Element, Editor, Text } from 'slate'
 import { ReactEditor } from 'slate-react'
 import { RenderElementProps } from 'slate-react'
+import cloneDeep from 'lodash/cloneDeep'
 
-export const LIST_TYPES = ['numbered-list', 'bulleted-list']
-export const HEADING_TYPES = ['h1', 'h2', 'h3']
 
-const emptyPage = {
-  type: 'page',
-  data: {},
-  children: [
-    {
-      type: 'paragraph',
-      children: [
-        {
-          type: 'text',
-          text: ''
-        }
-      ]
-    }
-  ]
-}
 
+/*
+  https://docs.slatejs.org/concepts/11-normalizing
+  "Normalizing" is how you can ensure that your editor's content is always
+  of a certain shape. It's similar to "validating", except instead of just
+  determining whether the content is valid or invalid, its job is to fix
+  the content to make it valid again.
+*/
+
+/*
+  THIS ONLY HAPPENS ON CHANGE NOT ON LOAD
+  This can be used to determine overflow to
+  the next page on change.
+
+  HOW DO WE DO THIS ON LOAD?
+*/
 function withCustomNormalize(editor: ReactEditor) {
-  // can include custom normalisations---
-  const { normalizeNode } = editor
+  console.log('withCustomNormalize')
+  // can include custom normalizations... TODO: LEARN MORE
+  const { normalizeNode: defaultNormalize } = editor
 
   editor.normalizeNode = (entry) => {
-    const [node] = entry
+    const [node, path] = entry
 
-    if (Text.isText(node)) return normalizeNode(entry)
+    if (Text.isText(node)) {
+      return defaultNormalize(entry)
+    } else if (Element.isElement(node) && node.type === 'section-page') {
+      console.log('node', node)
 
-    // if the node is Page
-    if (Element.isElement(node) && node.type === 'page') {
-      let PageNode
-      // console.log('node', node)
-
-      try {
-        PageNode = ReactEditor.toDOMNode(editor, node)
-      } catch (e) {
-        return normalizeNode(entry)
-      }
+      let SectionNode
+      SectionNode = ReactEditor.toDOMNode(editor, node)
+      console.log('SectionNode', SectionNode)
+      // try {
+      // } catch (e) {
+      //   console.log('catch', e)
+      //   return
+      //   // defaultNormalize(entry)
+      // }
 
       let currentPageHeight = 0
-      console.log('PageNode', PageNode)
-      const pageHeight = getPageHeight(PageNode)
-      const children = Array.from(PageNode.children)
+      const pageHeight = getPageHeight(SectionNode)
+      const children = Array.from(SectionNode.children)
 
       children.forEach((child) => {
         const childHeight = getChildHeight(child)
         currentPageHeight = currentPageHeight + childHeight
 
         if (currentPageHeight > pageHeight) {
-          // TODO: lift higher?
-          Transforms.liftNodes(editor)
+          const emptyPage = {
+            type: 'page',
+            data: cloneDeep(node.data), // pass props to page for w, h, margins
+            children: []
+          }
+
+          Transforms.liftNodes(editor, {
+            // at?: Location | undefined;
+            // match?: NodeMatch<Node> | undefined;
+            // mode?: "all" | ... 2 more ... | undefined;
+            // voids?: boolean | undefined;
+          })
+
+          // Split nodes at the specified location. If no location is specified, split the selection.
           Transforms.splitNodes(editor)
-          const elementData = JSON.parse(PageNode.dataset.element)
+          const elementData = JSON.parse(SectionNode.dataset.element)
           console.log(elementData)
           emptyPage.data = elementData
+
+          // Wrap nodes at the specified location in the element container.
+          // If no location is specified, wrap the selection.
           Transforms.wrapNodes(editor, emptyPage)
         }
       })
     }
-
     // Fall back to the original `normalizeNode` to enforce other constraints.
-    return normalizeNode(entry)
+    return defaultNormalize(entry)
   }
 
   return editor
 }
-
 
 export default withCustomNormalize
 
@@ -120,6 +134,9 @@ const getChildHeight = (child): number => {
 }
 
 /*
+  export const LIST_TYPES = ['numbered-list', 'bulleted-list']
+  export const HEADING_TYPES = ['h1', 'h2', 'h3']
+
   const isBlockActive = (editor: ReactEditor, type: string) => {
   const [match] = Editor.nodes(editor, {
     match: (n: any) => n.type === type

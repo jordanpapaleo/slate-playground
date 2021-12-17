@@ -8,18 +8,27 @@ export const renderLeaf = (props: any) => {
 }
 
 // When marks are rendered, the characters are grouped into "leaves"
-const toggleMark = (editor: ComboEditor, format: string) => {
-  const isActive = isMarkActive(editor, format)
+const toggleMark = (
+  {
+    editor,
+    type
+  }:
+  {
+    editor: ComboEditor,
+    type: string,
+  }
+) => {
+  const isActive = isMarkActive(editor, type)
   if (isActive) {
-    Editor.removeMark(editor, format)
+    Editor.removeMark(editor, type)
   } else {
-    Editor.addMark(editor, format, true)
+    Editor.addMark(editor, type, true)
   }
 }
 
-const isMarkActive = (editor: ComboEditor, format: string) => {
+const isMarkActive = (editor: ComboEditor, type: string) => {
   const marks = Editor.marks(editor)
-  return marks ? marks[format] === true : false
+  return marks ? marks[type] === true : false
 }
 
 export const setFontStyles = (editor: ComboEditor, key: string, value: string) => {
@@ -30,15 +39,15 @@ export const setFontStyles = (editor: ComboEditor, key: string, value: string) =
 
 export const TEXT_NODES: Array<{
   label: string,
-  key: string,
+  type: string,
   fn: (editor: ComboEditor, styleKey: string) => void
 }> = [
-    { label: 'Bold', key: 'bold', fn: toggleMark },
-    { label: 'Italic', key: 'italic', fn: toggleMark },
-    { label: 'Underline', key: 'underline', fn: toggleMark },
-    { label: 'Strike', key: 'strike', fn: toggleMark },
-    { label: 'Highlight', key: 'highlight', fn: toggleMark },
-    { label: 'Color', key: 'color', fn: toggleMark },
+    { label: 'Bold', type: 'bold', fn: toggleMark },
+    { label: 'Italic', type: 'italic', fn: toggleMark },
+    { label: 'Underline', type: 'underline', fn: toggleMark },
+    { label: 'Strike', type: 'strike', fn: toggleMark },
+    { label: 'Highlight', type: 'highlight', fn: toggleMark },
+    { label: 'Color', type: 'color', fn: toggleMark },
   ]
 
 export const OPTION_TEXT_NODES: Array<{
@@ -58,7 +67,7 @@ export const OPTION_TEXT_NODES: Array<{
     key: 'fontFamily',
     fn: setFontStyles,
     options: [ 'Arial', 'Tahoma', 'Verdana' ]
-  }
+  },
 ]
 
 /*

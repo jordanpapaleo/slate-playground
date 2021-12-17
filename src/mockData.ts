@@ -17,7 +17,7 @@ export const getList = (type, data = {}) => ({
 })
 
 export const getParagraph = (text, data = {}) => ({
-  type: 'paragraph',
+  type: 'p',
   object: 'block',
   data,
   children: [{ text }],

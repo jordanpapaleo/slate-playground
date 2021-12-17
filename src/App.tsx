@@ -9,20 +9,19 @@ import * as reactSlate from 'slate-react'
 import {
   keyPressHandler,
 } from './appUtils'
+import { Plate } from '@udecode/plate'
 
 import {
   loadEditorState,
   saveEditorState,
 } from './stateUtils'
 
-import { TEXT_NODES, OPTION_TEXT_NODES, renderLeaf } from './textNodes'
+import { TEXT_NODES, OPTION_TEXT_NODES, renderLeaf } from './markNodes'
 import { ELEMENT_NODES, renderElement } from './elementNodes'
 
 import withCustomNormalize from './withCustomNormalize'
 import { ComboEditor } from './common.types'
 
-window.slate = slate
-window.reactSlate = reactSlate
 const { createEditor, Text, Transforms, Descendant, Editor, Range, Path } = slate
 const {
   // useFocused,
@@ -73,23 +72,28 @@ const getPage = (editor) => {
 
 const App = () => {
   // https://github.com/ianstormtaylor/slate/issues/4081
-  const editor = React.useMemo(getEditor, [])
-  const renderElementFn = React.useCallback(renderElement, [])
+  const [editor] = React.useState(() => getEditor())
+  // const renderElementFn = React.useCallback(renderElement, [])
   const renderLeafFn = React.useCallback(renderLeaf, [])
   const [value, setValue] = React.useState<typeof Descendant[]>(loadEditorState())
   const [textSearch, setTextSearch] = React.useState<string | undefined>()
 
   React.useEffect(() => {
     window.editor = editor
-    window.tfs = Transforms
+    window.Transforms = Transforms
+    window.slate = slate
+    window.reactSlate = reactSlate
   }, [editor])
 
-  React.useEffect(() => { saveEditorState(value) }, [value])
+  React.useEffect(() => {
+    saveEditorState(value)
+  }, [value])
 
   React.useEffect(() => {
+    // runs the normalizeNode method on load
+    Editor.normalize(editor, { force: true })
     ReactEditor.focus(editor)
   }, [])
-
 
   // text search ranges
   const getRanges = ([node, path]) => {
@@ -97,7 +101,7 @@ const App = () => {
 
     if (textSearch && Text.isText(node)) {
       const { text } = node
-      const parts = text.split(textSearch)
+      const parts = text.toLocaleLowerCase().split(textSearch.toLowerCase())
       let offset = 0
 
       parts.forEach((part, i) => {
@@ -119,9 +123,9 @@ const App = () => {
   const decorate = React.useCallback(getRanges, [textSearch])
 
   const genericHandler = (type, fn) => (e) => {
+    console.log({ type, fn})
     e.preventDefault()
-    const data = { style: {color: 'blue'} }
-    fn({ data, editor, type })
+    fn({ editor, type })
   }
 
   const handlePaddingChange = (updateKey) => (e) => {
@@ -155,20 +159,22 @@ const App = () => {
         onChange={(newValue) => { setValue(newValue) }}
         value={value}
       >
-        <Toolbar
+
+        {/* <Toolbar
           editor={editor}
           genericHandler={genericHandler}
           handlePaddingChange={handlePaddingChange}
           handlePaperSizeChange={handlePaperSizeChange}
           setTextSearch={setTextSearch}
-        />
+        /> */}
 
         <Editable
+          // renderElement={renderElementFn}
           decorate={decorate}
           onBlur={() => { console.log('Blurred') }}
           onKeyDown={keyPressHandler(editor)}
           onPaste={() => { console.log('Pasted') }}
-          renderElement={renderElementFn}
+          renderElement={renderElement}
           renderLeaf={renderLeafFn}
         />
       </Slate>
@@ -189,7 +195,8 @@ const Toolbar = ({
   handlePaperSizeChange,
   setTextSearch,
 }) => {
-  const inputStyles = { display: 'inline-flex' }
+  const inputStyles = { display: 'inline-flex', marginRight: 20, marginBottom: 5 }
+  const buttonStyles = { marginRight: 2, marginBottom: 5}
   const INPUTS = [
     ['Margin Left', 'paddingLeft'],
     ['Margin Right', 'paddingRight'],
@@ -199,35 +206,45 @@ const Toolbar = ({
 
   return (
     <nav>
-      {TEXT_NODES.map(({ label, key, fn }) => (
-        <button key={key} onMouseDown={genericHandler(key, fn)}>{label}</button>
+      {[
+        ...TEXT_NODES,
+        ...ELEMENT_NODES
+      ].map(({ label, type, fn }) => (
+        <button
+          key={type}
+          style={buttonStyles}
+          onMouseDown={(e) => {
+            e.preventDefault()
+            fn({ editor, type })
+          }}
+        >
+          {label}
+        </button>
       ))}
 
-      {ELEMENT_NODES.map(({ label, type, fn }) => (
-        <button key={type} onMouseDown={genericHandler(type, fn)}>{label}</button>
-      ))}
+      <div>
+        {OPTION_TEXT_NODES.map(({ label, key, fn, options }) => (
+          <label key={key} style={inputStyles}>
+            {label}<span style={{ paddingLeft: 10 }} />
+            <select onChange={(e) => { fn(editor, key, e.target.value) }}>
+              {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+          </label>
+        ))}
 
-      {/* <button>Data Element</button> */}
-
-      {OPTION_TEXT_NODES.map(({ label, key, fn, options }) => (
-        <label key={key} style={{ display: 'inline-flex' }}>
-          {label} <select onChange={(e) => { fn(editor, key, e.target.value) }}>
-            {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+        <label style={inputStyles}>
+          Paper Size <span style={{ paddingLeft: 10 }} />
+          <select onChange={handlePaperSizeChange} style={{ width: 75 }}>
+            <option value="4x4">4x4</option>
+            <option value="5x5">5x5</option>
+            <option value="6x6">6x6</option>
           </select>
         </label>
-      ))}
-
-      <label style={inputStyles}>
-        Text Search<br />
-        <input
-          type="search"
-          onChange={e => setTextSearch(e.target.value)}
-        />
-      </label>
-
+      </div>
+      <div>
       {INPUTS.map(([label, value]) => (
         <label style={inputStyles} key={value}>
-          {label}<br />
+          {label} <span style={{paddingLeft: 10}} />
           <input
             max="3"
             min="0"
@@ -237,15 +254,16 @@ const Toolbar = ({
           />
         </label>
       ))}
-
-      <label style={inputStyles}>
-        Paper Size
-        <select onChange={handlePaperSizeChange}>
-          <option value="4x4">4x4</option>
-          <option value="5x5">5x5</option>
-          <option value="6x6">6x6</option>
-        </select>
-      </label>
+      </div>
+      <div>
+        <label style={inputStyles}>
+          Text Search<span style={{ paddingLeft: 10 }} />
+          <input
+            type="search"
+            onChange={e => setTextSearch(e.target.value)}
+          />
+        </label>
+      </div>
     </nav>
   )
 }

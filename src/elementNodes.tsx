@@ -36,13 +36,13 @@ export function toggleType({
   editor,
   type,
 }: {
-  data: {},
+  data?: {},
   editor: ComboEditor,
   type: string,
 }) {
   const isActive = testType(editor, type)
   const props = isActive
-    ? { type: 'paragraph' }
+    ? { data, type: 'p' }
     : { data, type }
 
   // @ts-ignore
@@ -69,44 +69,49 @@ export const ELEMENT_NODES: Array<{
   ]
 
 export const renderElement = (props: any) => {
-  // console.log('props.element', props.element)
+  const { attributes, children, element } = props
 
-  switch (props.element.type) {
+  switch (element.type) {
     case 'code':
       return <CodeElement { ...props } />
-    case 'block-quote':
-      return <blockquote { ...props.attributes }>{ props.children }</blockquote>
-    case 'ul':
-      return <ul { ...props.attributes }>{ props.children }</ul>
-    case 'h1':
-      return <h1 { ...props.attributes }>{ props.children }</h1>
-    case 'h2':
-      return <h2 { ...props.attributes }>{ props.children }</h2>
-    case 'h3':
-      return <h3 { ...props.attributes }>{ props.children }</h3>
-    case 'li':
-      return <li { ...props.attributes }>{ props.children }</li>
-    case 'ol':
-      return <ol { ...props.attributes }>{ props.children }</ol>
-    case 'table':
-      return <table { ...props.attributes }>{ props.children }</table>
-    case 'tr':
-      return <tr { ...props.attributes }>{ props.children }</tr>
-    case 'td':
-      return <td { ...props.attributes }>{ props.children }</td>
-    case 'section':
+    case 'section-page':
+      console.log('section-page')
       return <Section className="section" {...props} />
-    case 'section-break':
-      return <Section className="section-break" {...props} />
     case 'page':
       return <Page {...props} />
     case 'data-element':
       return <DataElement {...props} />
     case 'columns':
       return <Columns {...props } />
+    case 'conditional':
+      return <Conditional {...props} />
     default:
-      return <DefaultElement { ...props } />
+      return element.type
+        ? <element.type className="test-generic-element" {...attributes}>{children}</element.type>
+        : <DefaultElement {...props} />
   }
+}
+
+const Conditional = (props) => {
+  // const conditions = props.element.data.contitions
+  // const [condition, setCondition] = React.useState(conditions[0])
+
+  // const handleClick = (i) => () => {
+  //   setCondition(conditions[i])
+  // }
+
+  return (
+    <div className="conditional">
+      {/* <div className="conditions" style={{display: 'flex', flexDirection: 'column'}}>
+        {conditions.map(({ label, i }) => (
+          <button key={label} onClick={handleClick(i)}>
+            {label}
+          </button>
+        ))}
+      </div> */}
+      {props.children}
+    </div>
+  )
 }
 
 
@@ -114,7 +119,7 @@ export const renderElement = (props: any) => {
 const Columns = (props) => {
   // https://www.w3schools.com/css/css3_multiple_columns.asp
   const styles = {
-    columnCount: 3,
+    columnCount: 4,
     columnGap: 20,
     columnRule: '1px solid hotpink',
   }
@@ -129,13 +134,18 @@ const Columns = (props) => {
 const DataElement = (props) => {
   /*
     needs some tweaking when tying to add data after and to delete
+    Editor.deleteBackward(editor, { unit: 'word' })
+    probably should not be contentEditable false bc you cant delete it ;p
    */
   const [show, setShow] = React.useState(false)
+
+
 
   return (
     <span
       style={{ userSelect: "none", position: 'relative', backgroundColor: '#eee', padding: '0 3px'}}
       contentEditable={false}
+      suppressContentEditableWarning
       onMouseEnter={() => { setShow(true) }}
       onMouseOut={() => { setShow(false) }}
     >
@@ -156,20 +166,52 @@ const DataElement = (props) => {
   )
 }
 
+/* Section has Pages */
 const Section = (props) => (
-  <section
-    className={props.className}
+  <div
+    className={"section-page " + props.className}
     style={props.element.data.style}
   >
     {props.children}
-  </section>
+  </div>
 )
 
-const Page = (props) => (
-  <main style={props.element.data.style} className='page'>
+const Page = (props) => {
+  // console.log('page', props)
+  return (
+  <main
+    style={props.element.data.style}
+    className='page'
+  >
+    {/* {props.element.header && (
+      <Header {...props.element.header} />
+    )} */}
+
     {props.children}
+
+    {/* {props.element.footer && (
+      <Footer {...props.element.footer} />
+    )} */}
   </main>
-)
+)}
+
+const Header = (props) => {
+  console.log('header', props)
+  return (
+    <header>
+      {props.children}
+    </header>
+  )
+}
+
+const Footer = (props) => {
+  console.log('footer', props)
+  return (
+    <footer>
+      {props.children}
+    </footer>
+  )
+}
 
 //
 //

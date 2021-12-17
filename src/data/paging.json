@@ -1,0 +1,32 @@
+[
+  {
+    "type": "section-page",
+    "data": {
+      "name": "Section 1",
+      "pageName": "Letter",
+      "pageHeight": "5.5in",
+      "pageWidth": "4.25in",
+      "paddingBottom": "0.5in",
+      "paddingTop": "0.5in",
+      "paddingLeft": "0.5in",
+      "paddingRight": "0.5in"
+    },
+    "header": {
+      "type": "header",
+      "children": [{"text": "header"}]
+    },
+    "footer": {
+      "type": "footer",
+      "children": [{"text": "footer"}]
+    },
+    "children": [
+      {
+        "type": "p",
+        "children": [
+          { "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi id auctor ipsum. Maecenas quis tortor in ante pulvinar dictum sit amet at mauris. Fusce ac tellus diam. Duis mattis dignissim nisl, in tristique ante ullamcorper in.Ut purus nisl, scelerisque et elementum eu, sodales sit amet tortor. Curabitur nec sem ut justo mattis malesuada. Nulla maximus pulvinar nulla, ultrices cursus justo gravida et. Etiam sed mi et eros ullamcorper facilisis sed in ante. Nullam tincidunt, nibh sed porta congue, leo est ullamcorper nisl, quis posuere libero nisl accumsan nunc." }
+        ]
+      }
+    ]
+  }
+]
+
