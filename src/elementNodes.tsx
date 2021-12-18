@@ -170,7 +170,8 @@ const DataElement = (props) => {
 const Section = (props) => (
   <div
     className="section"
-    style={props.element.data.style}
+    style={{padding: 10}}
+    // style={props.element.data.style}
     {...props.attributes}
   >
     {props.children}
@@ -183,6 +184,7 @@ const Page = (props) => {
   <main
     style={props.element.data.style}
     className='page'
+      {...props.attributes}
   >
     {/* {props.element.header && (
       <Header {...props.element.header} />
@@ -199,7 +201,7 @@ const Page = (props) => {
 const Header = (props) => {
   console.log('header', props)
   return (
-    <header>
+    <header {...props.attributes}>
       {props.children}
     </header>
   )
@@ -208,7 +210,7 @@ const Header = (props) => {
 const Footer = (props) => {
   console.log('footer', props)
   return (
-    <footer>
+    <footer {...props.attributes}>
       {props.children}
     </footer>
   )

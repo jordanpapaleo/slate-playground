@@ -23,24 +23,21 @@ function withCustomNormalize(editor: ReactEditor) {
     const [node, path] = entry
 
     if (Text.isText(node)) return normalizeNode(entry)
-
-
-    if (Element.isElement(node) && node.type === 'section') {
-      let SectionNode
+    if (Element.isElement(node) && node.type === 'page') {
+      let PageNode
 
       try {
-        SectionNode = ReactEditor.toDOMNode(editor, node)
+        PageNode = ReactEditor.toDOMNode(editor, node)
       } catch (e) {
         console.log('IGNORE ME', e)
         return normalizeNode(entry)
       }
 
-      // console.log('SectionNode', SectionNode)
 
       let currentPageHeight = 0
-      const pageHeight = getPageHeight(SectionNode)
+      const pageHeight = getPageHeight(PageNode)
       console.log('pageHeight', pageHeight)
-      const children = Array.from(SectionNode.children)
+      const children = Array.from(PageNode.children)
       console.log('children', children)
 
       children.forEach((child) => {
@@ -51,7 +48,7 @@ function withCustomNormalize(editor: ReactEditor) {
 
         if (currentPageHeight > pageHeight) {
           const emptyPage = {
-            type: 'section',
+            type: 'page',
             data: cloneDeep(node.data), // pass props to page for w, h, margins
             children: []
           }
@@ -65,8 +62,8 @@ function withCustomNormalize(editor: ReactEditor) {
 
           // Split nodes at the specified location. If no location is specified, split the selection.
           Transforms.splitNodes(editor)
-          // console.log('SectionNode.dataset.element', SectionNode.dataset.element)
-          // const elementData = JSON.parse(SectionNode.dataset.element)
+          // console.log('PageNode.dataset.element', PageNode.dataset.element)
+          // const elementData = JSON.parse(PageNode.dataset.element)
           // console.log('elementData', elementData)
           // emptyPage.data = elementData
           // Wrap nodes at the specified location in the element container.

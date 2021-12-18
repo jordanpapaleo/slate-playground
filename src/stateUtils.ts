@@ -14,18 +14,36 @@ import testJson from  './data/paging.json'
 type CustomElement = { type: 'p'; children: CustomText[] }
 type CustomText = { text: string }
 
-
-const initialValue: CustomElement[] = []
-
 export const saveEditorState = (value: any) => {
   const content = JSON.stringify(value)
   localStorage.setItem('content', content)
 }
 
 export const loadEditorState = () => {
-  delete testJson[0].header
-  delete testJson[0].footer
-  return JSON.parse(JSON.stringify(testJson))
+  // every section needs to be give a single page to start
+  // it will be split into multiple pages
+
+  /*
+    1. load data from the backend
+    2. Put of the section content into a page
+    3. Split pages as needed
+  */
+
+  const sections = testJson.map((section) => ({
+    ...section,
+    children: [
+      {
+        type: 'page',
+        data: section.data,
+        header: section.header,
+        footer: section.footer,
+        children: section.children
+      }
+    ]
+  }))
+
+  // Force break all reference types
+  return JSON.parse(JSON.stringify(sections))
 
   // @ts-ignore
   // const savedState = JSON.parse(localStorage.getItem('content'))

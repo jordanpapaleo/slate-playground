@@ -178,7 +178,7 @@ const App = () => {
         />
       </Slate>
 
-      <pre>
+      <pre style={{marginLeft: '1rem'}}>
         {JSON.stringify(value, null, 2)}
       </pre>
     </div>

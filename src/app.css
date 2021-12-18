@@ -2,19 +2,22 @@
   box-sizing: border-box;
   margin-bottom: 1rem;
   tab-size: 1in;
-  border: 2px solid #d3d3d3;
-  border-color: hotpink;
+  border: 1px solid #d3d3d3;
   box-shadow: 0 0 5px rgb(0 0 0 / 10%);
   background-color: white;
+  -webkit-box-shadow: 5px 5px 15px 5px #d3d3d3;
+  box-shadow: 5px 5px 15px 5px #d3d3d3;
 }
 
 .section {
-  border: 2px solid #d3d3d3;
+  border: 0.5px solid #d3d3d3;
   margin-bottom: 1rem;
+  border-radius: 4px;
+  background-color: white;
 }
 
 html {
-  background-color: rgb(243, 244, 246);
+  background-color: #F3F4F6;
 }
 
 pre {
