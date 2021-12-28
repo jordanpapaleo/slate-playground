@@ -3,28 +3,10 @@
     "type": "section",
     "data": {
       "style": {
-        "width": "4in",
-        "height": "4in",
-        "padding": "0.5in"
+        "widthInches": 4,
+        "heightInches": 4,
+        "paddingInches": 0.5
       }
-    },
-     "header": {
-      "type": "header",
-      "data": {
-        "style": {
-          "margin": 1
-        }
-      },
-      "children": []
-    },
-    "footer": {
-      "type": "footer",
-      "data": {
-        "style": {
-          "margin": 1
-        }
-      },
-      "children": []
     },
     "children": [
       {

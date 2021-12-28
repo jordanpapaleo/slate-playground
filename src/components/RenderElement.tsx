@@ -1,16 +1,20 @@
-import { usePageLayoutCalculation } from "./../state/PageLayout";
-import { RenderElementProps } from "slate-react";
+import * as SlateReact from "slate-react";
 
-export default function RenderElement(props: RenderElementProps) {
-  // Hook into the page layout calculation system.
-  // This publishes layout information to the central state,
-  // and subscribes to element state that can initiate page splitting.
-  usePageLayoutCalculation(props.element);
-
+export default function RenderElement(props: SlateReact.RenderElementProps) {
+  // Choose a rendering strategy based on the element type,
+  // falling back to using a simple `p` tag as the default.
   const elementType = props.element.type as string;
   switch (elementType) {
     case "section":
-      return <Section {...props} />;
+      return (
+        <>
+          <span contentEditable={false} className="header" />
+          <div className="section" {...props.attributes}>
+            {props.children}
+          </div>
+          <span contentEditable={false} className="footer" />
+        </>
+      );
     default:
       return (
         <p className={elementType} {...props.attributes}>
@@ -18,16 +22,4 @@ export default function RenderElement(props: RenderElementProps) {
         </p>
       );
   }
-}
-
-function Section(props: RenderElementProps) {
-  return (
-    <>
-      <span contentEditable={false} className="header" />
-      <div className="section" {...props.attributes}>
-        {props.children}
-      </div>
-      <span contentEditable={false} className="footer" />
-    </>
-  );
 }
