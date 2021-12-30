@@ -15,6 +15,16 @@ export default class HierarchicalAnalyses<A> {
     return !this.children.some((layer) => layer?.analysis);
   }
 
+  // Run the given function for each analysis, in depth-first order of layers.
+  forEachAnalysisDepthFirst(callback: (analysis: A) => unknown) {
+    const analysis = this.analysis;
+    if (analysis) callback(analysis);
+
+    this.children.forEach((layer) =>
+      layer?.forEachAnalysisDepthFirst(callback)
+    );
+  }
+
   // Get access to an analysis of type A for the given path.
   // If that layer does not yet exist, this operation implicitly creates it.
   getOrCreate(protoA: Proto<A>, path: number[], pathProgress = 0): A {

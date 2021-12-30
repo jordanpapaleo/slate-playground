@@ -12,22 +12,22 @@ interface LeafPaginatorProps extends SlateReact.RenderLeafProps {
 export default function LeafPaginator(props: LeafPaginatorProps) {
   let { attributes, children, leaf, text, renderLeaf } = props;
 
-  // const pageSplitInfo: PageSplitInfo | undefined = (leaf as any).pageSplitInfo;
-  // if (pageSplitInfo)
-  //   return (
-  //     <>
-  //       {children}
-  //       <span contentEditable={false} className="page-split-spacer"></span>
-  //       <span contentEditable={false} className="page-split-absolute">
-  //         <span contentEditable={false} className="footer" />
-  //         <span contentEditable={false} className="header" />
-  //       </span>
-  //     </>
-  //   );
+  const pageSplitInfo: PageSplitInfo | undefined = (leaf as any).pageSplitInfo;
+  if (pageSplitInfo)
+    return (
+      <>
+        {children}
+        <span contentEditable={false} className="page-split-spacer"></span>
+        <span contentEditable={false} className="page-split-absolute">
+          <span contentEditable={false} className="footer" />
+          <span contentEditable={false} className="header" />
+        </span>
+      </>
+    );
 
-  const elementState = usePageLayoutElementState(text as any); // TODO: avoid `as any`
+  // const elementState = usePageLayoutElementState(text as any); // TODO: avoid `as any`
 
-  children = maybeSplitChildren(leaf, children, elementState.splitInfos);
+  // children = maybeSplitChildren(leaf, children, elementState.splitInfos);
 
   return renderLeaf({ attributes, children, leaf, text });
 }

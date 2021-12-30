@@ -82,9 +82,9 @@ export const PageLayout = Unstated.createContainer((initialState) => {
 export default PageLayout;
 
 export function usePageLayoutTopLevelRefresh() {
-  const [refreshTimestamp, setRefreshTimestamp] = React.useState<Date>(
-    new Date()
-  );
+  const [refreshTimestamp, setRefreshTimestamp] = React.useState<
+    Date | undefined
+  >();
 
   const centralState = PageLayout.useContainer();
 
@@ -96,10 +96,24 @@ export function usePageLayoutTopLevelRefresh() {
       centralState.refreshTimestampPubSub.unsubscribe(setRefreshTimestamp);
   }, [centralState]);
 
-  // When the refresh timestamp changes, refresh layout of dirty sections.
-  React.useEffect(() => {
+  // When the list of decorations changes, make a new decorate function using it
+  // to filter for decorations that contain a certain path.
+  const decorate = React.useMemo(() => {
     refreshDirtySections(centralState);
+
+    return (entry: Slate.NodeEntry<Slate.Node>): Slate.Range[] => {
+      const [node, path] = entry;
+
+      if ((node as any).type !== "text") return [];
+
+      const ranges = centralState.elementStatePubSubs.getOrCreate(PubSub, path)
+        .mostRecentValue?.pageSplitRanges;
+
+      return ranges || [];
+    };
   }, [centralState, refreshTimestamp]);
+
+  return { isReady: !!refreshTimestamp, decorate };
 }
 
 // export function usePageLayoutDecorateFn(): (
@@ -411,6 +425,10 @@ function splitLeaf(
   const text = element.textContent;
   if (!text) return;
 
+  // Make a new array for this path so we don't hold onto the mutable one
+  // that the cursor will continue to mutate as it passes by us later.
+  const path = [...cursor.path];
+
   const spacePoints: [number, number][] = [[0, 0]];
   const spacePointsPattern = /\s+/gm;
   let matchInfo;
@@ -458,7 +476,7 @@ function splitLeaf(
     };
     splitInfos.push(splitInfo);
     const splitPoint = {
-      path: cursor.path,
+      path,
       offset: spacePoints[currentEndSpace][1],
     };
     pageSplitRanges.push({
@@ -490,8 +508,23 @@ function splitLeaf(
   element.textContent = text;
 
   // Publish the split information, causing the React node to re-render.
-  publishElementState(centralState, cursor.path, {
+  publishElementState(centralState, path, {
     splitInfos,
     pageSplitRanges,
   });
+}
+
+function gatherDecorations(
+  centralState: CentralState,
+  into: Slate.Range[] = []
+) {
+  centralState.elementStatePubSubs.forEachAnalysisDepthFirst(
+    (pubSub: PubSub<ElementState>) => {
+      pubSub.mostRecentValue?.pageSplitRanges?.forEach((range) =>
+        into.push(range)
+      );
+    }
+  );
+  console.log("into", into);
+  return into;
 }

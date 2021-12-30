@@ -6,7 +6,7 @@ import * as SlateReact from "slate-react";
 
 import RenderLeaf from "./components/RenderLeaf";
 import RenderElement from "./components/RenderElement";
-import PageLayout from "./state/PageLayout";
+import PageLayout, { usePageLayoutTopLevelRefresh } from "./state/PageLayout";
 import LeafPaginator from "./components/LeafPaginator";
 import ElementMeasurer from "./components/ElementMeasurer";
 
@@ -14,7 +14,7 @@ import initialJSON from "./data/initial.json";
 
 import "./app.css";
 import LeafMeasurer from "./components/LeafMeasurer";
-import PageLayoutTopLevelHelper from "./components/PageLayoutTopLevelHelper";
+// import PageLayoutTopLevelHelper from "./components/PageLayoutTopLevelHelper";
 
 const PLUGINS = [SlateHistory.withHistory, SlateReact.withReact];
 
@@ -34,15 +34,17 @@ function AppInner() {
   const [editorShadow] = React.useState(createEditor);
   const [value, setValue] = React.useState<any[]>(initialJSON);
 
-  const decorate = undefined; // usePageLayoutDecorateFn();
+  // const decorate = undefined; // usePageLayoutDecorateFn();
 
   React.useEffect(() => {
     SlateReact.ReactEditor.focus(editor);
   }, [editor]);
 
+  const { isReady, decorate } = usePageLayoutTopLevelRefresh();
+
   return (
     <div style={{ margin: "1rem", display: "flex" }}>
-      <PageLayoutTopLevelHelper />
+      {/* <PageLayoutTopLevelHelper /> */}
       <SlateReact.Slate
         editor={editorShadow}
         onChange={() => {}}
@@ -55,10 +57,11 @@ function AppInner() {
           // We can't measure the paginated view accurately because the
           // existing page splits would get in the way of our measurements.
           readOnly
-          // We hide it from view with opacity and positioning tricks,
+          // We hide it from view with visibility and positioning tricks,
           // because we don't need/want the user to interact with it at all.
-          // TODO: (add accessibility attributes to hide from screen readers)
-          // style={{ opacity: 0, position: "absolute" }}
+          // Note that we use `visibility: "hidden"` instead of `opacity: 0`,
+          // because for accessibility we want to also hide from screen readers.
+          style={{ visibility: "hidden", position: "absolute" }}
           // Plug in our application-specific views for leaves and elements,
           // wrapped in pagination-aware wrappers we can use to measure them.
           renderLeaf={(props) => (
@@ -82,6 +85,7 @@ function AppInner() {
       >
         <SlateReact.Editable
           decorate={decorate}
+          style={{ opacity: isReady ? 1 : 0 }}
           // Plug in our application-specific views for leaves and elements,
           // wrapped in pagination-aware wrappers we can use to split them.
           renderLeaf={(props) => (
